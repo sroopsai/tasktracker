@@ -1,0 +1,143 @@
+package in.roopsai.shellDemo;
+
+import org.springframework.shell.standard.ShellComponent;
+import org.springframework.shell.standard.ShellMethod;
+import org.springframework.shell.standard.ShellOption;
+
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
+
+@ShellComponent
+public class Commands {
+
+    private final AtomicInteger idGenerator = new AtomicInteger(0);
+
+    private final TaskList taskList = new TaskList();
+
+    @ShellMethod(value = "Add Operation")
+    public void add(@ShellOption(defaultValue = "") String arg) {
+        if (arg.isBlank()) {
+            System.out.println("Please enter task");
+
+        } else {
+            int id = idGenerator.getAndIncrement();
+            Task task = new Task(id, arg, "todo", new Date(), new Date());
+            taskList.addTask(task);
+            System.out.println(task);
+        }
+    }
+
+    @ShellMethod(value = "update")
+    public void update(@ShellOption(defaultValue = "") String id, String description) {
+        if (id.isBlank()) {
+            System.out.println("Id should be provided!");
+        } else {
+            try {
+                Integer i = Integer.parseInt(id);
+                if (description.isBlank()) {
+                    System.out.println("Description should be provided!");
+                }
+                Task task = taskList.getTasks().stream().filter(t -> t.id().equals(i)).findFirst().orElse(null);
+                if (task != null) {
+                    Task updatedTask = new Task(task.id(), description, task.status(), task.createdAt(), new Date());
+                    taskList.getTasks().remove(task);
+                    taskList.addTask(task);
+                    System.out.println(updatedTask);
+                } else {
+                    System.out.println("No such task with id: " + id);
+                }
+            } catch (NumberFormatException e) {
+                System.out.println(e);
+
+            }
+        }
+    }
+
+    @ShellMethod(value = "Mark In Progress")
+    public void markInProgress(@ShellOption(defaultValue = "") String arg) {
+        if (arg.isBlank()) {
+            System.out.println("Please enter task id");
+        } else {
+            try {
+                int i = Integer.parseInt(arg);
+                Task task = taskList.getTasks().stream().filter(t -> t.id().equals(i)).findFirst().orElse(null);
+
+                if (task != null) {
+                    Task updatedTask = new Task(task.id(), task.description(), "mark-in-progress", task.createdAt(), new Date());
+                    taskList.getTasks().remove(task);
+                    taskList.addTask(task);
+                    System.out.println(updatedTask);
+                } else {
+                    System.out.println("No such task with id: " + i);
+                }
+
+
+            } catch (NumberFormatException e) {
+                System.out.println(e);
+            }
+        }
+    }
+
+    @ShellMethod(value = "Done")
+    public void done(@ShellOption(defaultValue = "") String arg) {
+        if (arg.isBlank()) {
+            System.out.println("Please enter task id");
+        } else {
+            try {
+                int i = Integer.parseInt(arg);
+                Task task = taskList.getTasks().stream().filter(t -> t.id().equals(i)).findFirst().orElse(null);
+
+                if (task != null) {
+                    Task updatedTask = new Task(task.id(), task.description(), "done", task.createdAt(), new Date());
+                    taskList.getTasks().remove(task);
+                    taskList.addTask(task);
+                    System.out.println(updatedTask);
+                } else {
+                    System.out.println("No such task with id: " + i);
+                }
+
+
+            } catch (NumberFormatException e) {
+                System.out.println(e);
+            }
+        }
+    }
+
+    @ShellMethod(value = "List Operation")
+    public void list(@ShellOption(defaultValue = "") String arg) {
+        taskList.getTasks().forEach(System.out::println);
+    }
+
+   @ShellMethod(value = "Update Operation")
+   public void update(@ShellOption(defaultValue = "0") String arg) {
+
+   }
+
+    @ShellMethod(value = "Delete Operation")
+    public void delete(@ShellOption(defaultValue = "") String id) {
+        if (id.isBlank()) {
+            System.out.println("Provide an id!");
+        } else {
+            try {
+                Integer i = Integer.parseInt(id);
+                // Search the list using id
+                Task task = taskList.getTasks().stream().filter(t -> t.id().equals(i)).findFirst().orElse(null);
+                if (task != null) {
+                    System.out.println("Removing task " + task);
+                    taskList.getTasks().remove(task);
+                } else {
+                    System.out.println("Task with id " + i + " Not found!");
+                }
+
+            } catch (NumberFormatException e) {
+                System.out.println(e);
+            }
+
+        }
+
+    }
+
+
+
+
+}
