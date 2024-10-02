@@ -1,0 +1,18 @@
+{
+  "tasks": [
+    {
+      "id": 0,
+      "description": "Hello World",
+      "status": "todo",
+      "createdAt": "Wed Oct 02 21:18:02 IST 2024",
+      "updatedAt": "Wed Oct 02 21:18:02 IST 2024"
+    },
+    {
+      "id": 1,
+      "description": "Learn Java",
+      "status": "todo",
+      "createdAt": "Wed Oct 02 21:18:24 IST 2024",
+      "updatedAt": "Wed Oct 02 21:18:24 IST 2024"
+    }
+  ]
+}

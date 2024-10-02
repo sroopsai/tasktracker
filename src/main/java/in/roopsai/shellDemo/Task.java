@@ -1,10 +1,8 @@
 package in.roopsai.shellDemo;
 
-import org.springframework.context.annotation.Bean;
-
 import java.util.Date;
 
-public record Task(Integer id, String description, String status, Date createdAt, Date updatedAt) {
+public record Task(Integer id, String description, String status, String createdAt, String updatedAt) {
 
 
     @Override

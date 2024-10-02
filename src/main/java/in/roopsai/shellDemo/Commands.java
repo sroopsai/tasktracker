@@ -4,6 +4,8 @@ import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -14,6 +16,32 @@ public class Commands {
 
     private final TaskList taskList = new TaskList();
 
+    private final TaskListJsonWriter jsonWriter = new TaskListJsonWriter();
+
+
+    public void writeToFile() {
+        // Check if the file exists, if not create and populate it
+        File file = new File("src/main/resources/tasks.json");
+        if (!file.exists()) {
+            try {
+
+                boolean created = file.createNewFile();
+                if (!created) {
+                    System.out.println("File creation failed");
+                } else {
+                    jsonWriter.writeTaskListToFile(taskList, "tasks");
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+
+            jsonWriter.writeTaskListToFile(taskList, "tasks");
+        }
+
+    }
+
     @ShellMethod(value = "Add Operation")
     public void add(@ShellOption(defaultValue = "") String arg) {
         if (arg.isBlank()) {
@@ -21,13 +49,15 @@ public class Commands {
 
         } else {
             int id = idGenerator.getAndIncrement();
-            Task task = new Task(id, arg, "todo", new Date(), new Date());
+            Task task = new Task(id, arg, "todo", new Date().toString(), new Date().toString());
             taskList.addTask(task);
             System.out.println(task);
+            writeToFile();
+
         }
     }
 
-    @ShellMethod(value = "update")
+    @ShellMethod(value = "Update Operation")
     public void update(@ShellOption(defaultValue = "") String id, String description) {
         if (id.isBlank()) {
             System.out.println("Id should be provided!");
@@ -39,10 +69,11 @@ public class Commands {
                 }
                 Task task = taskList.getTasks().stream().filter(t -> t.id().equals(i)).findFirst().orElse(null);
                 if (task != null) {
-                    Task updatedTask = new Task(task.id(), description, task.status(), task.createdAt(), new Date());
+                    Task updatedTask = new Task(task.id(), description, task.status(), task.createdAt(), new Date().toString());
                     taskList.getTasks().remove(task);
                     taskList.addTask(task);
                     System.out.println(updatedTask);
+                    writeToFile();
                 } else {
                     System.out.println("No such task with id: " + id);
                 }
@@ -63,10 +94,11 @@ public class Commands {
                 Task task = taskList.getTasks().stream().filter(t -> t.id().equals(i)).findFirst().orElse(null);
 
                 if (task != null) {
-                    Task updatedTask = new Task(task.id(), task.description(), "mark-in-progress", task.createdAt(), new Date());
+                    Task updatedTask = new Task(task.id(), task.description(), "mark-in-progress", task.createdAt(), new Date().toString());
                     taskList.getTasks().remove(task);
                     taskList.addTask(task);
                     System.out.println(updatedTask);
+                    writeToFile();
                 } else {
                     System.out.println("No such task with id: " + i);
                 }
@@ -88,10 +120,11 @@ public class Commands {
                 Task task = taskList.getTasks().stream().filter(t -> t.id().equals(i)).findFirst().orElse(null);
 
                 if (task != null) {
-                    Task updatedTask = new Task(task.id(), task.description(), "done", task.createdAt(), new Date());
+                    Task updatedTask = new Task(task.id(), task.description(), "done", task.createdAt(), new Date().toString());
                     taskList.getTasks().remove(task);
                     taskList.addTask(task);
                     System.out.println(updatedTask);
+                    writeToFile();
                 } else {
                     System.out.println("No such task with id: " + i);
                 }
@@ -108,11 +141,6 @@ public class Commands {
         taskList.getTasks().forEach(System.out::println);
     }
 
-   @ShellMethod(value = "Update Operation")
-   public void update(@ShellOption(defaultValue = "0") String arg) {
-
-   }
-
     @ShellMethod(value = "Delete Operation")
     public void delete(@ShellOption(defaultValue = "") String id) {
         if (id.isBlank()) {
@@ -125,6 +153,7 @@ public class Commands {
                 if (task != null) {
                     System.out.println("Removing task " + task);
                     taskList.getTasks().remove(task);
+                    writeToFile();
                 } else {
                     System.out.println("Task with id " + i + " Not found!");
                 }
@@ -136,8 +165,6 @@ public class Commands {
         }
 
     }
-
-
 
 
 }
