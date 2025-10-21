@@ -8,6 +8,8 @@
 A simple yet powerful **Command Line Interface (CLI)** tool to track your daily tasks.  
 Built in **Java**, it helps you manage tasks with ease — from adding and updating to marking progress or completion — all through your terminal.
 
+> 💡 This project is based on the ["Task Tracker" project from Roadmap.sh](https://roadmap.sh/projects/task-tracker)
+
 ---
 
 ## 🔗 Project Links
