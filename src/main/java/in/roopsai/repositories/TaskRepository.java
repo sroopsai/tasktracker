@@ -7,8 +7,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TaskRepository {
@@ -18,31 +17,41 @@ public class TaskRepository {
 
     static {
         try {
-            initializeRepository();
+            loadTasks();
         } catch (IOException e) {
             throw new RuntimeException("Failed to initialize cache");
         }
     }
 
-    private static void initializeRepository() throws IOException {
+    private static void loadTasks() throws IOException {
         Path path = Path.of(FILE_NAME);
         if (!Files.exists(path)) {
             Files.createFile(path);
             Files.writeString(path, "[]");
         } else {
-            readTasksFromFile();
+            TaskRepository taskRepository = new TaskRepository();
+            taskRepository.readTasksFromFile();
             long maxId = tasksCache.keySet().stream()
                     .mapToLong(Long::longValue)
                     .max()
                     .orElse(0L);
 
+            Task.initializeCounter(maxId + 1);
         }
     }
 
-    private static void readTasksFromFile() {
+    public Optional<Task> fetchTask(Long id) {
+        return Optional.ofNullable(tasksCache.get(id));
+    }
+
+    private void readTasksFromFile() {
         Path path = Path.of(FILE_NAME);
         try (var br = new BufferedReader(new FileReader(path.toFile()))) {
             String json = br.lines().collect(Collectors.joining());
+            if (json.isEmpty()) {
+                System.out.println("JSON file is empty");
+                return;
+            }
             String[] tasks = json.substring(1, json.length() - 1).split("},\\{");
             for (String t : tasks) {
                 var task = parseTaskFromJson(t);
@@ -53,7 +62,7 @@ public class TaskRepository {
         }
     }
 
-    private static Task parseTaskFromJson(String task) {
+    private Task parseTaskFromJson(String task) {
         String[] fields = task.split(",");
 
         Map<String, String> fieldMap = new HashMap<>();
@@ -70,12 +79,13 @@ public class TaskRepository {
 
     }
 
-    private static void saveTask(Task task) {
+    public Task saveTask(Task task) {
         tasksCache.put(task.id(), task);
         writeTasksToFile();
+        return task;
     }
 
-    private static void writeTasksToFile() {
+    private void writeTasksToFile() {
         StringBuilder sb = new StringBuilder();
         sb.append("[");
         int count = 0;
@@ -85,8 +95,9 @@ public class TaskRepository {
             sb.append("\"id\":\"").append(task.id()).append("\",");
             sb.append("\"description\":\"").append(task.description()).append("\",");
             sb.append("\"status\":\"").append(task.status()).append("\",");
+
             sb.append("\"createdAt\":\"").append(task.createdAt()).append("\",");
-            sb.append("\"updatedAt\":\"").append(task.updatedAt()).append("\",");
+            sb.append("\"updatedAt\":\"").append(task.updatedAt()).append("\"");
 
             sb.append("}");
             count++;
@@ -99,5 +110,18 @@ public class TaskRepository {
         } catch (IOException e) {
             throw new RuntimeException("Cannot connect to the file");
         }
+    }
+
+    public List<Task> fetchTasks(Status status) {
+        return tasksCache.values().stream().filter(task -> task.status() == status).sorted(Comparator.comparingLong(Task::id)).toList();
+    }
+
+    public List<Task> fetchAllTasks() {
+        return tasksCache.values().stream().sorted(Comparator.comparingLong(Task::id)).toList();
+
+    }
+
+    public Optional<Task> deleteTask(Long id) {
+        return Optional.ofNullable(tasksCache.remove(id));
     }
 }
